@@ -95,6 +95,7 @@ class Search(object):
                 if node.state[i] == 0:
                     continue
                 h += getdistance(i, node.state[i])
+        h += self.__get_reverse_number(node)
         return h
         # h = np.sum(IsSame == False)
         # return h
@@ -109,6 +110,29 @@ class Search(object):
             n = n.father
         #print((h, g))
         return h,g
+
+    def __get_reverse_number(self, node):
+        graph = node.state.copy().reshape((4, 4))
+        # print(node.state.shape, node.state)
+        reverse_number = 0
+        for i in range(graph.shape[0]):
+            for j in range(graph.shape[1]):
+                if graph[i, j] == 0:
+                    graph[i, j] = 16
+                if i != 0:
+                    if graph[i, j] < graph[i-1, j]:
+                        reverse_number += 1
+                if j != 0:
+                    if graph[i, j] < graph[i, j-1]:
+                        reverse_number += 1
+                if i != 3:
+                    if graph[i, j] > graph[i+1, j]:
+                        reverse_number += 1
+                if j != 3:
+                    if graph[i, j] > graph[i, j+1]:
+                        reverse_number += 1
+        return reverse_number>>2
+
 
     def IsInOpen(self, node):   #判断节点是否在OPEN表里
         for n in range(len(self.Open)):
