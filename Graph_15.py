@@ -256,5 +256,5 @@ if __name__ == "__main__":
     ans, count = se.getans()
     anslist = []
     se.printans(ans, anslist)
-    visualizgif(anslist)
+    # visualizgif(anslist)
     # print(relu)
