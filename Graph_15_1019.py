@@ -1,11 +1,12 @@
 # -*- encoding: utf-8 -*-
 '''
-@File    :   Graph_15.py
-@Time    :   2020/10/15 16:19:57
+@File    :   Graph_15_1019.py
+@Time    :   2020/10/19 20:19:14
 @Author  :   zqp 
 @Version :   1.0
 @Contact :   zhangqipeng@buaa.edu.cn
 '''
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,7 +50,6 @@ class node(): #节点
 
 class Search(object):
     def __init__(self, S0, relu, Isprint = True, htype = 1):
-        #参数：
         self.Isprint = Isprint      #是否打印搜索过程
         self.htype = htype          
         self.relu = relu
@@ -58,7 +58,7 @@ class Search(object):
         self.node.h, self.node.g = self.getf(self.node)
         self.node.f = self.node.h+self.node.g #计算估价函数
         self.Open = []
-        self.Close = []
+        self.Close = {}
         self.Open.append(self.node)
 
 
@@ -142,13 +142,13 @@ class Search(object):
         return False, -1
 
     def IsInClose(self, node):  #判断节点是否在CLOSE表里
-        for n in range(len(self.Close)):
-            if (node.state == self.Close[n].state).all():
-                return True, n
+        if self.Close.has_key(node.state):
+            if node.f < self.Close.get(node.state).f:
+                return True, self.Close.pop(node.state)
         return False, -1
 
     def SortOpen(self):
-        self.Open.sort(key=lambda node: node.f)  # 按f排序，如果相等，按h排序，保证深度优先
+        self.Open.sort(key=lambda node: (node.f, node.h))  # 按f排序，如果相等，按h排序，保证深度优先
                                                            # TODO 优化表较大时， 采用二分法插入
 
 
@@ -175,9 +175,9 @@ class Search(object):
         while self.Open: #OPEN表不空
             Time = time.time()
             count += 1 #计数搜索轮数
-            self.node = self.Open.pop(0) #取OPEN表最小f值的节点
+            self.node = self.Open.pop(0)  # 取OPEN表最小f值的节点
             #print(self.node.state)
-            self.Close.append(self.node) #放到CLOSE表
+            self.Close[self.node.state] = self.node  # 放到CLOSE表
             if self.IsEnd():
                 if self.Isprint:
                     print('搜索了%d轮'%(count-1))
@@ -197,22 +197,17 @@ class Search(object):
                     continue
                 flag, old = self.IsInClose(son)     #检查子节点是否在CLOSE表
                 if flag:
-                    if son.f < self.Close[old].f:   #如果在CLOSE表且其f较小，则将其移除CLOSE，并替换
-                        self.Open.append(self.Close.pop(old))
-                        self.Open[-1].h = son.h
-                        self.Open[-1].g = son.g
-                        self.Open[-1].f = son.f
-                        self.Open[-1].father = son.father
+                    self.Open.append(son)
                     continue
                 self.Open.append(son)
             T[1] = time.time() - Time
             Time = time.time()
             if self.Isprint:
                 print('第%d轮' % count)
-            if count % 1 == 0:
-                print('第%d轮' % count, self.node.f, self.node.h, self.node.g, 'open:{} close:{}'.format(len(self.Open),len(self.Close)), 
+            if count % 10 == 0:
+                print('第%d轮' % count, self.node.f, 'open:{} close:{}'.format(len(self.Open),len(self.Close)), 
                         'time:{:.4f}|{:.4f}|{:.4f}'.format(T[0], T[1], T[2]))
-                print(self.node.state)
+               
             self.SortOpen() #OPEN表排序
             T[2] = time.time() - Time
             Time = time.time()
@@ -266,7 +261,7 @@ if __name__ == "__main__":
     s0 = np.array([11, 9, 4, 15, 1, 3, 0, 12, 7, 5, 8, 6, 13, 2, 10, 14])
     s1 = np.array([5, 1, 2, 4, 9, 6, 3, 8, 13, 15, 10, 11, 14, 0, 7, 12])
     relu = get_relu()
-    se = Search(s1, relu, Isprint=False)
+    se = Search(s0, relu, Isprint=False)
     ans, count = se.getans()
     anslist = []
     se.printans(ans, anslist)
